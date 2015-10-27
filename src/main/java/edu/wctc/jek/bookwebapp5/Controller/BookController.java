@@ -1,8 +1,15 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package edu.wctc.jek.bookwebapp5.Controller;
 
 import edu.wctc.jek.bookwebapp5.Entity.Author;
+import edu.wctc.jek.bookwebapp5.Entity.Book;
 import edu.wctc.jek.bookwebapp5.service.AbstractFacade;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
@@ -13,17 +20,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The main controller for author-related activities. This servlet is configured
- * in web.xml, so no annotations are used here.
  *
  * @author jlombardo
  */
-public class AuthorController extends HttpServlet {
+public class BookController extends HttpServlet {
 
     // NO MAGIC NUMBERS!
     private static final String NO_PARAM_ERR_MSG = "No request parameter identified";
-    private static final String LIST_PAGE = "/listAuthors.jsp";
-    private static final String ADD_EDIT_AUTHORS_PAGE = "/addEditAuthors.jsp";
+    private static final String LIST_PAGE = "/listBooks.jsp";
+    private static final String ADD_EDIT_BOOKS_PAGE = "/addEditBooks.jsp";
     private static final String LIST_ACTION = "list";
     private static final String ADD_EDIT_DELETE_ACTION = "addEditDelete";
     private static final String SUBMIT_ACTION = "submit";
@@ -32,6 +37,8 @@ public class AuthorController extends HttpServlet {
     private static final String SAVE_ACTION = "Save";
     private static final String CANCEL_ACTION = "Cancel";
 
+    @Inject
+    private AbstractFacade<Book> bookService;
     @Inject
     private AbstractFacade<Author> authService;
 
@@ -50,7 +57,7 @@ public class AuthorController extends HttpServlet {
 
         String destination = LIST_PAGE;
         String action = request.getParameter(ACTION_PARAM);
-        Author author = null;
+        Book book = null;
 
         try {
             /*
@@ -59,7 +66,8 @@ public class AuthorController extends HttpServlet {
              */
             switch (action) {
                 case LIST_ACTION:
-                    this.refreshList(request, authService);
+                    this.refreshBookList(request, bookService);
+                    this.refreshAuthorList(request, authService);
                     destination = LIST_PAGE;
                     break;
 
@@ -68,58 +76,77 @@ public class AuthorController extends HttpServlet {
 
                     if (subAction.equals(ADD_EDIT_ACTION)) {
                         // must be add or edit, go to addEdit page
-                        String[] authorIds = request.getParameterValues("authorId");
-                        if (authorIds == null) {
+                        String[] bookIds = request.getParameterValues("bookId");
+                        if (bookIds == null) {
                             // must be an add action, nothing to do but
                             // go to edit page
+                            this.refreshAuthorList(request, authService);
                         } else {
                             // must be an edit action, need to get data
                             // for edit and then forward to edit page
                             
                             // Only process first row selected
-                            String authorId = authorIds[0];
-                            author = authService.find(new Integer(authorId));
-                            request.setAttribute("author", author);
+                            String bookId = bookIds[0];
+                            book = bookService.find(new Integer(bookId));
+                            request.setAttribute("book", book);
+                            this.refreshAuthorList(request, authService);
                         }
 
-                        destination = ADD_EDIT_AUTHORS_PAGE;
+                        destination = ADD_EDIT_BOOKS_PAGE;
 
                     } else {
                         // must be DELETE
                         // get array based on records checked
-                        String[] authorIds = request.getParameterValues("authorId");
-                        for (String id : authorIds) {
-                            author = authService.find(new Integer(id));
-                            authService.remove(author);
+                        String[] bookIds = request.getParameterValues("bookId");
+                        for (String id : bookIds) {
+                            book = bookService.find(new Integer(id));
+                            bookService.remove(book);
                         }
 
-                        this.refreshList(request, authService);
+                        this.refreshBookList(request, bookService);
+                        this.refreshAuthorList(request, authService);
                         destination = LIST_PAGE;
                     }
                     break;
                     
-                   
                 case SAVE_ACTION:
-                    String authorName = request.getParameter("authorName");
+                    String title = request.getParameter("title");
+                    String isbn = request.getParameter("isbn");
                     String authorId = request.getParameter("authorId");
-                    if(authorId == null) {
+                    String bookId = request.getParameter("bookId");
+                    
+                    if(bookId == null) {
                         // it must be new
-                        author = new Author();
-                        author.setAuthorName(authorName);
-                        author.setDateCreated(new Date());
+                        book = new Book(0);
+                        book.setTitle(title);
+                        book.setIsbn(isbn);
+                        Author author = null;
+                        if(authorId != null) {
+                            author = authService.find(new Integer(authorId));
+                            book.setAuthorId(author);
+                        }
+
                     } else {
                         // it must be an update
-                        author = authService.find(new Integer(authorId));
-                        author.setAuthorName(authorName);
+                        book = bookService.find(new Integer(bookId));
+                        book.setTitle(title);
+                        book.setIsbn(isbn);
+                        Author author = null;
+                        if(authorId != null) {
+                            author = authService.find(new Integer(authorId));
+                            book.setAuthorId(author);
+                        }
                     }
                     
-                    authService.edit(author);
-                    this.refreshList(request, authService);
+                    bookService.edit(book);
+                    this.refreshBookList(request, bookService);
+                    this.refreshAuthorList(request, authService);
                     destination = LIST_PAGE;
                     break;
                     
                 case CANCEL_ACTION:
-                    this.refreshList(request, authService);
+                    this.refreshBookList(request, bookService);
+                    this.refreshAuthorList(request, authService);
                     destination = LIST_PAGE;
                     break;
 
@@ -143,28 +170,16 @@ public class AuthorController extends HttpServlet {
     }
 
     // Avoid D-R-Y
-    private void refreshList(HttpServletRequest request, AbstractFacade<Author> authService) throws Exception {
+    private void refreshBookList(HttpServletRequest request, AbstractFacade<Book> bookService) throws Exception {
+        List<Book> books = bookService.findAll();
+        request.setAttribute("books", books);
+    }
+    
+    private void refreshAuthorList(HttpServletRequest request, AbstractFacade<Author> authService) throws Exception {
         List<Author> authors = authService.findAll();
         request.setAttribute("authors", authors);
     }
-
-    /**
-     * Called after the constructor is called by the container. This is the
-     * correct place to do one-time initialization.
-     *
-     * @throws ServletException
-     */
-    @Override
-    public void init() throws ServletException {
-        // Get init params from web.xml
-
-
-        // You can't do the Java Reflection stuff here because exceptions
-        // are thrown that can't be handled by this stock init() method
-        // because the method signature can't be modified -- remember, you 
-        // are overriding the method.
-    }
-
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
