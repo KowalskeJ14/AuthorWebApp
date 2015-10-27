@@ -1,16 +1,20 @@
 package edu.wctc.jek.bookwebapp5.Controller;
 
 import edu.wctc.jek.bookwebapp5.Entity.Author;
-import edu.wctc.jek.bookwebapp5.service.AbstractFacade;
+import edu.wctc.jek.bookwebapp5.service.AuthorService;
+//import edu.wctc.jek.bookwebapp5.service.AbstractFacade;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * The main controller for author-related activities. This servlet is configured
@@ -32,8 +36,8 @@ public class AuthorController extends HttpServlet {
     private static final String SAVE_ACTION = "Save";
     private static final String CANCEL_ACTION = "Cancel";
 
-    @Inject
-    private AbstractFacade<Author> authService;
+//    @Inject
+//    private AbstractFacade<Author> authService;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -52,6 +56,11 @@ public class AuthorController extends HttpServlet {
         String action = request.getParameter(ACTION_PARAM);
         Author author = null;
 
+        ServletContext sctx = getServletContext();
+        WebApplicationContext ctx
+                = WebApplicationContextUtils.getWebApplicationContext(sctx);
+        AuthorService authService = (AuthorService) ctx.getBean("authorService");
+        
         try {
             /*
              Determine what action to take based on a passed in QueryString
@@ -78,7 +87,7 @@ public class AuthorController extends HttpServlet {
                             
                             // Only process first row selected
                             String authorId = authorIds[0];
-                            author = authService.find(new Integer(authorId));
+                            author = authService.findById(authorId);
                             request.setAttribute("author", author);
                         }
 
@@ -89,7 +98,7 @@ public class AuthorController extends HttpServlet {
                         // get array based on records checked
                         String[] authorIds = request.getParameterValues("authorId");
                         for (String id : authorIds) {
-                            author = authService.find(new Integer(id));
+                            author = authService.findById(id);
                             authService.remove(author);
                         }
 
@@ -109,7 +118,7 @@ public class AuthorController extends HttpServlet {
                         author.setDateCreated(new Date());
                     } else {
                         // it must be an update
-                        author = authService.find(new Integer(authorId));
+                        author = authService.findById(authorId);
                         author.setAuthorName(authorName);
                     }
                     
@@ -143,7 +152,7 @@ public class AuthorController extends HttpServlet {
     }
 
     // Avoid D-R-Y
-    private void refreshList(HttpServletRequest request, AbstractFacade<Author> authService) throws Exception {
+    private void refreshList(HttpServletRequest request, AuthorService authService) throws Exception {
         List<Author> authors = authService.findAll();
         request.setAttribute("authors", authors);
     }
