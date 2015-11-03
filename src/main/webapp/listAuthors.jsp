@@ -36,14 +36,11 @@
             <td align="left">${a.authorId}</td>
             <td align="left">${a.authorName}</td>
             <td align="right">
-                <fmt:formatDate pattern="M/d/yyyy" value="${a.dateAdded}"></fmt:formatDate>
-            </td>
-            <td>
-               
+                <fmt:formatDate pattern="M/d/yyyy" value="${a.dateCreated}"></fmt:formatDate>
             </td>
         </tr>
         </c:forEach>
         </table>
-        <a href="../bookApp/" >Go Back</a>
+        <a href="index.jsp" >Go Back</a>
     </body>
 </html>

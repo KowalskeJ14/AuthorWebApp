@@ -60,7 +60,7 @@
             <input type="submit" value="Add/Edit" name="submit" />&nbsp;
             <input type="submit" value="Delete" name="submit" />
         </form>
-        <p>Click here to go back to Home Page <a href="index.html">Home</a></p>
+        <p>Click here to go back to Home Page <a href="index.jsp">Home</a></p>
 
         <c:if test="${errMsg != null}">
             <p style="font-weight: bold;color: red;width:500px;">Sorry, data could not be retrieved:<br>

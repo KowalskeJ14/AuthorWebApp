@@ -42,16 +42,6 @@ public class BookController extends HttpServlet {
     private static final String SAVE_ACTION = "Save";
     private static final String CANCEL_ACTION = "Cancel";
 
-//    @Inject
-//    private AbstractFacade<Book> bookService;
-//    @Inject
-//    private AbstractFacade<Author> authService;
-    ServletContext sctx = getServletContext();
-    WebApplicationContext ctx
-            = WebApplicationContextUtils.getWebApplicationContext(sctx);
-    BookService bookService = (BookService) ctx.getBean("bookService");
-    AuthorService authService = (AuthorService) ctx.getBean("authorService");
-
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -67,6 +57,13 @@ public class BookController extends HttpServlet {
 
         String destination = LIST_PAGE;
         String action = request.getParameter(ACTION_PARAM);
+
+        ServletContext sctx = getServletContext();
+        WebApplicationContext ctx
+                = WebApplicationContextUtils.getWebApplicationContext(sctx);
+        BookService bookService = (BookService) ctx.getBean("bookService");
+        AuthorService authService = (AuthorService) ctx.getBean("authorService");
+        
         Book book = null;
 
         try {

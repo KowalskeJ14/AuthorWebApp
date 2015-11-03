@@ -11,6 +11,7 @@ import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -49,7 +50,8 @@ public class Author implements Serializable {
     @Column(name = "date_created")
     @Temporal(TemporalType.DATE)
     private Date dateCreated;
-    @OneToMany(mappedBy = "authorId")
+//    @OneToMany(mappedBy = "authorId")
+    @OneToMany(mappedBy = "authorId", fetch = FetchType.EAGER)
     private Collection<Book> bookCollection;
 
     public Author() {
